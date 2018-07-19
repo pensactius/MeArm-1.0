@@ -1,47 +1,118 @@
 #include <Servo.h>
+
+// Definicion de pines
+#define PIN_BASE        10
+#define PIN_PINCA        8
+#define PIN_SERVO_RIGHT  7
+#define PIN_SERVO_LEFT  11
+#define PIN_HORIZ       A1
+#define PIN_VERT        A0
+#define PIN_BUTTON       9
+
+// Definición de los extremos de cada motor
+#define BASE_MIN        10
+#define BASE_MAX       170
+#define RIGHT_MIN
+#define RIGHT_MAX
+#define LEFT_MIN
+
+// Definición de las posiciones iniciales de los motores
+#define BASE_INICI      90
+#define RIGHT_INICI     30
+#define LEFT_INICI      90
+#define PINCA_TANCADA   90
+#define PINCA_OBERTA   170
+
+// Definición de variables para los motores
 Servo base;
 Servo pinca;
-Servo bracR;
-Servo bracL;
-int M = 90;
-int BR = 30;
-int BL = 90;
+Servo servoRight;
+Servo servoLeft;
+
+// Posiciona todos los motores a sus posiciones iniciales
+int angleBase = BASE_INICI;
+int angleRight = RIGHT_INICI;
+int angleLeft = LEFT_INICI;
+
+/* -----------------------------------------------------------
+       ____  ____  ____  _  _  ____ 
+      / ___)(  __)(_  _)/ )( \(  _ \
+      \___ \ ) _)   )(  ) \/ ( ) __/
+      (____/(____) (__) \____/(__) 
+
+   -----------------------------------------------------------
+*/      
 void setup(){
-  bracL.attach(11);
-  pinca.attach(8);
-  base.attach(10);
-  bracR.attach(7);
-  base.write(M);
-  pinca.write(70);
-  bracR.write(BR);
-  bracL.write(BL);
-  pinMode(9, INPUT_PULLUP);
+
+  // Configuración de pins de cada motor
+  servoLeft.attach(PIN_SERVO_LEFT);
+  pinca.attach(PIN_PINCA);
+  base.attach(PIN_BASE);
+  servoRight.attach(PIN_SERVO_RIGHT);
+
+  // Configuración del pin del boton del joystick
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+
+  // Posiciona los motores a la posición inicial
+  base.write(angleBase);
+  pinca.write(PINCA_TANCADA);
+  servoRight.write(angleRight);
+  servoLeft.write(angleLeft);
+
 }
 
+/* -----------------------------------------------------------
+           __     __    __  ____ 
+          (  )   /  \  /  \(  _ \
+          / (_/\(  O )(  O )) __/
+          \____/ \__/  \__/(__)
+
+ -----------------------------------------------------------
+*/
 void loop() {
-  //Base-->
-  if(analogRead(A1)>600){
-    M = M+3;
-      if(M>=170){
-      M = 170;
-      }
-    base.write(M);
+  
+  /* -------------------------------------------------------
+                  BASE
+    ------------------------------------------------------- 
+   */
+
+  // ¿Movemos el joystick a la izquierda?
+  if (analogRead (PIN_HORIZ) > 600) 
+  {
+    // Aumentamos el ángulo de la base
+    angleBase = angleBase + 3;
+    
+    // Mantenemos el servo en posiciones seguras
+    if(angleBase >= BASE_MAX){
+      angleBase = BASE_MAX;
+    }
+
+    // Actualizamos la posición del motor con el nuevo ángulo
+    base.write(angleBase);
     delay(50);
   }
   
-  if(analogRead(A1)<400){
-    M = M-3;
-      if(M<=10){
-        M = 10;
-      }
-    base.write(M);
+  // ¿Movemos el joystick a la derecha?
+  if (analogRead (PIN_HORIZ) < 400)
+  {
+    // Decrementamos el ángulo de la base
+    angleBase = angleBase - 3;
+
+    // Mantenemos el servo en posiciones seguras
+    if (angleBase <= BASE_MIN){
+      angleBase = BASE_MIN;
+    }
+    base.write(angleBase);
     delay(50);
   }
 
-  //<---Base
+  /* -------------------------------------------------------
+                  PINÇA
+    ------------------------------------------------------- 
+   */
   
-  //Claw---->
-  if (digitalRead(9)==1){
+  if (digitalRead (PIN_BUTTON) == 1)
+  {
     pinca.write(170);
   }
   else{
@@ -51,33 +122,33 @@ void loop() {
 
   
   //Arm
-  if(analogRead(A0)>600){
-    if (BL<90){
-      BL=BL+3;
-      bracL.write(BL);
+  if(analogRead(PIN_VERT)>600){
+    if (angleLeft<90){
+      angleLeft=angleLeft+3;
+      servoLeft.write(angleLeft);
     }else{
-      BR = BR-3;
-        if(BR<=30){
-          BR = 30;
+      angleRight = angleRight-3;
+        if(angleRight<=30){
+          angleRight = 30;
         }
-      bracR.write(BR);
+      servoRight.write(angleRight);
     }
 
     delay(50);
   }  
-  if(analogRead(A0)<400){
-    BR = BR+3;
-      if(BR>=75){
-      BR= 75;
+  if(analogRead(PIN_VERT)<400){
+    angleRight = angleRight+3;
+      if(angleRight>=75){
+      angleRight= 75;
       }   
-    bracR.write(BR);
+    servoRight.write(angleRight);
 
-     if(BR>=60){
-      BL = BL-3;
-      if (BL <= 15){ 
-        BL = 15;
+     if(angleRight>=60){
+      angleLeft = angleLeft-3;
+      if (angleLeft <= 15){ 
+        angleLeft = 15;
       }
-      bracL.write(BL);
+      servoLeft.write(angleLeft);
      }
     delay(100);
   }
